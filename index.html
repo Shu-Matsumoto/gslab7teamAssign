@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="main">
+      <h1><font color="blue">G's ACADEMY FLAB07 チーム分け</font></h1>
+      <div class="top_area">
+        <div class="member_list">
+          <h2><font color="blue">参加者</font></h2>
+          <table>
+            <thead>
+              <tr>
+                <th>No.</th>
+                <th>名前</th>
+              </tr>
+            </thead>
+            <tbody id="id_member_list_table_body"></tbody>
+          </table>
+        </div>
+        <div class="team_setting">
+          <div>
+            <h2><font color="blue">チーム構成</font></h2>
+            <label for="id_numberOfTeam">追加チームの人数</label>
+            <input
+              type="number"
+              id="id_numberOfTeam"
+              name="quantity1"
+              value="2"
+            />
+            <button id="id_addTeam">Add</button>
+          </div>
+          <div>
+            <ul id="id_team_list"></ul>
+          </div>
+          <label for="id_totalNumberOfMembers">参加人数合計</label>
+          <input type="text" id="id_totalNumberOfMembers" value="0" readonly />
+        </div>
+      </div>
+      <div class="bottom_area">
+        <label for="id_button_assign_members"
+          ><font color="blue">チームアサインメント</font></label
+        >
+        <button id="id_button_assign_members">Go</button>
+        <div class="team_assign">
+          <table>
+            <thead></thead>
+            <tbody id="id_member_assign_result_table_body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+  <style>
+    body {
+      background-image: url("fukuoka_slide01.jpg");
+      background-size: cover;
+      font-size: large;
+    }
+
+    .main {
+      background-color: rgba(255, 255, 255, 0.9);
+      width: 40%;
+      margin-left: 1%;
+    }
+
+    .top_area {
+      display: flex;
+      margin-left: 1%;
+    }
+
+    h1 {
+      margin-left: 1%;
+    }
+
+    .member_list {
+      width: 30%;
+    }
+
+    #id_team_list {
+      list-style: none;
+    }
+
+    .bottom_area {
+      margin-top: 5%;
+    }
+
+    .bottom_area label {
+      font-size: larger;
+      font-weight: bold;
+    }
+
+    #id_button_assign_members {
+      width: 100px;
+      height: 50px;
+      background-color: cyan;
+      border-style: solid;
+      border-width: 1px;
+    }
+
+    .team_assign {
+      margin-top: 1%;
+    }
+  </style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- <script src="memberDef.js"></script>
+  <script src="team.js"></script> -->
+  <script type="module">
+    import { MemberList } from "./memberDef.js";
+    import { Team } from "./team.js";
+
+    // 初期表示
+    let memberList = document.getElementById("id_member_list_table_body");
+    let innerHTMLText = "";
+    for (let index = 0; index < MemberList.length; index++) {
+      innerHTMLText +=
+        "<tr>" +
+        "<td>" +
+        (index + 1) +
+        "</td>" +
+        "<td>" +
+        MemberList[index] +
+        "</td>" +
+        "</tr>";
+    }
+    memberList.innerHTML = innerHTMLText;
+
+    // 全チームの人数の合計取得
+    function getTotalNumberOfMembers() {
+      let totalNumberOfMembers = 0;
+
+      let teamList = document.getElementById("id_team_list");
+      let elementCount = teamList.childElementCount;
+      //console.log(elementCount);
+      for (let index = 0; index < elementCount; index++) {
+        let number = $("#id_team_list li").eq(index).val();
+        //console.log(number);
+        totalNumberOfMembers += Number(number);
+      }
+      //console.log(totalNumberOfMembers);
+      return totalNumberOfMembers;
+    }
+
+    // チーム追加ボタン実行
+    $("#id_addTeam").on("click", () => {
+      // 数字取得
+      const number = $("#id_numberOfTeam").val();
+      //console.log(number);
+
+      let teamList = document.getElementById("id_team_list");
+      let elementCount = teamList.childElementCount;
+      let currentHTML = teamList.innerHTML;
+      teamList.innerHTML =
+        currentHTML +
+        "<li class='team_item' value=" +
+        number +
+        ">チームNo." +
+        (elementCount + 1) +
+        ", チーム人数:" +
+        number +
+        "</li>";
+      //console.log(teamList.innerHTML);
+
+      // 全チームの人数の合計
+      document.getElementById("id_totalNumberOfMembers").value =
+        getTotalNumberOfMembers();
+    });
+
+    // ランダム整数取得
+    function getRandInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // チームアサインメントボタン実行
+    $("#id_button_assign_members").on("click", () => {
+      // 全チームの人数の合計
+      let totalNumberOfMembers = getTotalNumberOfMembers();
+      if (totalNumberOfMembers != MemberList.length) {
+        alert("参加者と割り当てるチームの総人数が一致しません");
+        return;
+      }
+
+      // 全チームリスト
+      let teams = Array();
+
+      // 各チームのメンバー数取得
+      let teamList = document.getElementById("id_team_list");
+      let elementCount = teamList.childElementCount;
+      for (let index = 0; index < elementCount; index++) {
+        let number = $("#id_team_list li").eq(index).val();
+        let team = new Team(number);
+        teams.push(team);
+      }
+      //console.log(elementCount);
+
+      // アサイン済人数
+      let numOfAssigned = 0;
+      // 各メンバーをアサインするループ
+      while (numOfAssigned < MemberList.length) {
+        // メンバーアサイン
+        while (true) {
+          // 乱数取得
+          let randNumber = getRandInt(0, elementCount - 1);
+          //console.log(randNumber);
+          if (!teams[randNumber].AssignCompleted()) {
+            teams[randNumber].Add(MemberList[numOfAssigned]);
+            break;
+          }
+        }
+        // アサイン済人数をインクリメント
+        numOfAssigned++;
+      }
+      //console.log(teams);
+
+      // メンバーアサイン結果表示
+      let resultList = document.getElementById(
+        "id_member_assign_result_table_body"
+      );
+      // 表示要素をクリア
+      resultList.innerHTML = "";
+
+      let innerHTMLText2 = "";
+      for (let teamIndex = 0; teamIndex < teams.length; teamIndex++) {
+        let innerHTMLText3 = "<td>チームNo." + (teamIndex + 1) + "</td>";
+        for (
+          let memberIndex = 0;
+          memberIndex < teams[teamIndex].NumOfMembers;
+          memberIndex++
+        ) {
+          innerHTMLText3 += "<td>";
+          innerHTMLText3 += teams[teamIndex].Members[memberIndex];
+          innerHTMLText3 += "</td>";
+        }
+        innerHTMLText2 = "<tr>" + innerHTMLText3 + "</tr>";
+        resultList.innerHTML = resultList.innerHTML + innerHTMLText2;
+      }
+    });
+  </script>
+</html>
