@@ -105,6 +105,11 @@
     .team_assign {
       margin-top: 1%;
     }
+
+    #id_member_assign_result_table_body th,
+    td {
+      border: solid 1px;
+    }
   </style>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <!-- <script src="memberDef.js"></script>
@@ -113,19 +118,40 @@
     import { MemberList, MissmatchMemberList } from "./memberDef.js";
     import { Team } from "./team.js";
 
+    // 入力配列をランダムソートした配列を取得する
+    function getRandomSortArray(targetArray) {
+      // 出力用の配列へ入力をコピー
+      let array = [...targetArray];
+      for (let index = array.length - 1; 0 < index; index--) {
+        // 0〜(index+1)の範囲で値を取得
+        let r = Math.floor(Math.random() * (index + 1));
+
+        // 要素の並び替えを実行
+        let tmp = array[index];
+        array[index] = array[r];
+        array[r] = tmp;
+      }
+      // console.log("targetArray:" + targetArray);
+      // console.log("OutArray:" + array);
+
+      return array;
+    }
+
     // 初期表示
     let memberList = document.getElementById("id_member_list_table_body");
     let innerHTMLText = "";
+    let memberCounter = 0;
     MemberList.forEach((value, key) => {
       innerHTMLText +=
         "<tr>" +
         "<td>" +
-        (value + 1) +
+        (memberCounter + 1) +
         "</td>" +
         "<td>" +
         key +
         "</td>" +
         "</tr>";
+      memberCounter++;
     });
     memberList.innerHTML = innerHTMLText;
 
@@ -180,6 +206,11 @@
       // アサイン成功フラグ
       let assignSuccess = true;
 
+      // 参加メンバーのランダムソートされたリスト
+      let targetMembersArray = getRandomSortArray(
+        Array.from(MemberList.keys())
+      );
+
       // 全チームリスト
       let teams = Array();
 
@@ -193,7 +224,7 @@
       }
       //console.log(elementCount);
 
-      MemberList.forEach((value, key) => {
+      targetMembersArray.forEach((value) => {
         let tryCounter = 0;
         const maxTryNumber = 10;
         // メンバーアサイン
@@ -204,9 +235,9 @@
           //console.log(randNumber);
           if (
             !teams[randNumber].AssignCompleted() &&
-            teams[randNumber].IsAaddiable(MissmatchMemberList, key)
+            teams[randNumber].IsAaddiable(MissmatchMemberList, value)
           ) {
-            teams[randNumber].Add(key);
+            teams[randNumber].Add(value);
             break;
           }
           tryCounter++;
