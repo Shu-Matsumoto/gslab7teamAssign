@@ -8,17 +8,6 @@ const MemberNameMatsumoto = "まつもと";
 const MemberNameMishima= "みしま";
 
 // メンバーリスト
-// export const MemberList = [
-//   MemberNameAbematsu,
-//   MemberNameOkawauchi,
-//   MemberNameTamaru,
-//   MemberNameNakashima,
-//   MemberNameNasu,
-//   MemberNameMatsumoto,
-//   MemberNameMishima
-// ];
-
-// メンバーリスト
 export const MemberList = new Map([
   [MemberNameAbematsu,  0],
   [MemberNameOkawauchi, 1],

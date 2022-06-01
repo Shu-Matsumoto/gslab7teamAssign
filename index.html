@@ -177,6 +177,9 @@
 
     // メンバーアサイン
     function assignMembers() {
+      // アサイン成功フラグ
+      let assignSuccess = true;
+
       // 全チームリスト
       let teams = Array();
 
@@ -190,16 +193,26 @@
       }
       //console.log(elementCount);
 
-      // アサイン済人数
       MemberList.forEach((value, key) => {
+        let tryCounter = 0;
+        const maxTryNumber = 10;
         // メンバーアサイン
-        while (true) {
+        // メンバーがFIXせずに無限ループに入る場合があるので救済
+        while (tryCounter < maxTryNumber) {
           // 乱数取得
           let randNumber = getRandInt(0, teamsCount - 1);
           //console.log(randNumber);
-          if (!teams[randNumber].AssignCompleted()) {
+          if (
+            !teams[randNumber].AssignCompleted() &&
+            teams[randNumber].IsAaddiable(MissmatchMemberList, key)
+          ) {
             teams[randNumber].Add(key);
             break;
+          }
+          tryCounter++;
+          if (tryCounter >= maxTryNumber) {
+            assignSuccess = false;
+            return assignSuccess;
           }
         }
       });
@@ -227,6 +240,8 @@
         innerHTMLText2 = "<tr>" + innerHTMLText3 + "</tr>";
         resultList.innerHTML = resultList.innerHTML + innerHTMLText2;
       }
+
+      return assignSuccess;
     }
 
     // チームアサインメントボタン実行
@@ -245,12 +260,17 @@
         $("#id_button_assign_members").text("Stop");
         periodicExeFunc = setInterval(() => {
           // メンバーアサイン実行
-          assignMembers();
+          let assignSuccess = assignMembers();
+          while (!assignSuccess) {
+            assignSuccess = assignMembers();
+          }
         }, 100);
       } else {
         $("#id_button_assign_members").text("Start");
         clearInterval(periodicExeFunc);
       }
+      // メンバーアサイン実行
+      //assignMembers();
     });
   </script>
 </html>
