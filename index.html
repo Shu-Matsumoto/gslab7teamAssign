@@ -42,10 +42,25 @@
         </div>
       </div>
       <div class="bottom_area">
-        <label for="id_button_assign_members"
-          ><font color="blue">チームアサインメント</font></label
-        >
-        <button id="id_button_assign_members">Start</button>
+        <div class="assign_controls">
+          <div>
+            <label for="id_button_assign_members"
+              ><font color="blue">チームアサインメント</font></label
+            >
+            <button id="id_button_assign_members">Start</button>
+          </div>
+          <div>
+            <input
+              type="checkbox"
+              id="id_checkbox_mismatch"
+              name="checkbox_mismatch"
+              checked
+            />
+            <label for="checkbox_mismatch" id="id_label_checkbox_mismatch"
+              >過去に同チームになった経緯を考慮</label
+            >
+          </div>
+        </div>
         <div class="team_assign">
           <table>
             <thead></thead>
@@ -92,6 +107,17 @@
     .bottom_area label {
       font-size: larger;
       font-weight: bold;
+    }
+
+    .assign_controls {
+      display: flex;
+      flex-direction: column;
+      margin-left: 1%;
+    }
+
+    #id_label_checkbox_mismatch {
+      font-size: large;
+      font-weight: lighter;
     }
 
     #id_button_assign_members {
@@ -202,7 +228,7 @@
     }
 
     // メンバーアサイン
-    function assignMembers() {
+    function assignMembers(mismatchConsideration) {
       // アサイン成功フラグ
       let assignSuccess = true;
 
@@ -233,10 +259,16 @@
           // 乱数取得
           let randNumber = getRandInt(0, teamsCount - 1);
           //console.log(randNumber);
-          if (
-            !teams[randNumber].AssignCompleted() &&
-            teams[randNumber].IsAaddiable(MissmatchMemberList, value)
-          ) {
+          // 過去の同チームメンバーの考慮
+          let conbineCondition = true;
+          if (mismatchConsideration) {
+            conbineCondition = teams[randNumber].IsAaddiable(
+              MissmatchMemberList,
+              value
+            );
+          }
+
+          if (!teams[randNumber].AssignCompleted() && conbineCondition) {
             teams[randNumber].Add(value);
             break;
           }
@@ -278,6 +310,10 @@
     // チームアサインメントボタン実行
     var periodicExeFunc = null;
     $("#id_button_assign_members").on("click", () => {
+      // 過去同チームメンバー考慮の設定取得
+      let mismatchCheckBox = document.getElementById("id_checkbox_mismatch");
+      //console.log(mismatchCheckBox.checked);
+
       // 全チームの人数の合計
       let totalNumberOfMembers = getTotalNumberOfMembers();
       //console.log(MemberList.size);
@@ -291,9 +327,9 @@
         $("#id_button_assign_members").text("Stop");
         periodicExeFunc = setInterval(() => {
           // メンバーアサイン実行
-          let assignSuccess = assignMembers();
+          let assignSuccess = assignMembers(mismatchCheckBox.checked);
           while (!assignSuccess) {
-            assignSuccess = assignMembers();
+            assignSuccess = assignMembers(mismatchCheckBox.checked);
           }
         }, 100);
       } else {
@@ -301,7 +337,7 @@
         clearInterval(periodicExeFunc);
       }
       // メンバーアサイン実行
-      //assignMembers();
+      //assignMembers(mismatchCheckBox.checked);
     });
   </script>
 </html>
