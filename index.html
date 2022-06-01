@@ -45,7 +45,7 @@
         <label for="id_button_assign_members"
           ><font color="blue">チームアサインメント</font></label
         >
-        <button id="id_button_assign_members">Go</button>
+        <button id="id_button_assign_members">Start</button>
         <div class="team_assign">
           <table>
             <thead></thead>
@@ -110,23 +110,23 @@
   <!-- <script src="memberDef.js"></script>
   <script src="team.js"></script> -->
   <script type="module">
-    import { MemberList } from "./memberDef.js";
+    import { MemberList, MissmatchMemberList } from "./memberDef.js";
     import { Team } from "./team.js";
 
     // 初期表示
     let memberList = document.getElementById("id_member_list_table_body");
     let innerHTMLText = "";
-    for (let index = 0; index < MemberList.length; index++) {
+    MemberList.forEach((value, key) => {
       innerHTMLText +=
         "<tr>" +
         "<td>" +
-        (index + 1) +
+        (value + 1) +
         "</td>" +
         "<td>" +
-        MemberList[index] +
+        key +
         "</td>" +
         "</tr>";
-    }
+    });
     memberList.innerHTML = innerHTMLText;
 
     // 全チームの人数の合計取得
@@ -175,22 +175,15 @@
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    // チームアサインメントボタン実行
-    $("#id_button_assign_members").on("click", () => {
-      // 全チームの人数の合計
-      let totalNumberOfMembers = getTotalNumberOfMembers();
-      if (totalNumberOfMembers != MemberList.length) {
-        alert("参加者と割り当てるチームの総人数が一致しません");
-        return;
-      }
-
+    // メンバーアサイン
+    function assignMembers() {
       // 全チームリスト
       let teams = Array();
 
       // 各チームのメンバー数取得
       let teamList = document.getElementById("id_team_list");
-      let elementCount = teamList.childElementCount;
-      for (let index = 0; index < elementCount; index++) {
+      let teamsCount = teamList.childElementCount;
+      for (let index = 0; index < teamsCount; index++) {
         let number = $("#id_team_list li").eq(index).val();
         let team = new Team(number);
         teams.push(team);
@@ -198,22 +191,18 @@
       //console.log(elementCount);
 
       // アサイン済人数
-      let numOfAssigned = 0;
-      // 各メンバーをアサインするループ
-      while (numOfAssigned < MemberList.length) {
+      MemberList.forEach((value, key) => {
         // メンバーアサイン
         while (true) {
           // 乱数取得
-          let randNumber = getRandInt(0, elementCount - 1);
+          let randNumber = getRandInt(0, teamsCount - 1);
           //console.log(randNumber);
           if (!teams[randNumber].AssignCompleted()) {
-            teams[randNumber].Add(MemberList[numOfAssigned]);
+            teams[randNumber].Add(key);
             break;
           }
         }
-        // アサイン済人数をインクリメント
-        numOfAssigned++;
-      }
+      });
       //console.log(teams);
 
       // メンバーアサイン結果表示
@@ -237,6 +226,30 @@
         }
         innerHTMLText2 = "<tr>" + innerHTMLText3 + "</tr>";
         resultList.innerHTML = resultList.innerHTML + innerHTMLText2;
+      }
+    }
+
+    // チームアサインメントボタン実行
+    var periodicExeFunc = null;
+    $("#id_button_assign_members").on("click", () => {
+      // 全チームの人数の合計
+      let totalNumberOfMembers = getTotalNumberOfMembers();
+      //console.log(MemberList.size);
+      if (totalNumberOfMembers != MemberList.size) {
+        alert("参加者と割り当てるチームの総人数が一致しません");
+        return;
+      }
+
+      let buttonLabel = $("#id_button_assign_members").text();
+      if (buttonLabel == "Start") {
+        $("#id_button_assign_members").text("Stop");
+        periodicExeFunc = setInterval(() => {
+          // メンバーアサイン実行
+          assignMembers();
+        }, 100);
+      } else {
+        $("#id_button_assign_members").text("Start");
+        clearInterval(periodicExeFunc);
       }
     });
   </script>
